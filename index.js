@@ -1,27 +1,44 @@
 const os = require('os');
 const path = require('path');
 const { promisify } = require('util');
-const fs = require('fs');
-const simpleGit = require('simple-git');
-const githubUrlFromNpm = promisify(require('github-url-from-npm'));
+const {
+    ensureDir,
+    ensureDirSync,
+    existsSync,
+    exists,
+    emptyDir
+} = require('fs-extra');
 const deasync = require('deasync');
-
-const mkdir = promisify(fs.mkdir);
+const latestVersion = require('latest-version');
+const { Unpacker } = require('tarball-unpacker');
+const semverCompare = require('semver-compare');
 
 const lrequire = function() {
-    this.cache = {};
+    this.latestVersionCache = {};
 
     this.configure({
         path: path.join(os.tmpdir(), 'lrequire'),
-        branch: 'master',
-        remote: 'origin',
-        pull: true
+        version: 'latest'
+    });
+
+    //this should happen only once
+    if (!existsSync(this.config.path)) {
+        ensureDirSync(this.config.path);
+    }
+
+    this.unpacker = new Unpacker();
+    this.unpacker.configure({
+        silent: true
     });
 
     const sync = this._sync.bind(this);
     sync.async = this.async.bind(this);
     sync.asyncCallback = this.asyncCallback.bind(this);
-    sync.clearCache = this.clearCache.bind(this);
+    sync.configure = this.configure.bind(this);
+
+    Object.defineProperty(sync, 'config', {
+        get: () => this.config
+    });
 
     return sync;
 };
@@ -31,54 +48,26 @@ lrequire.prototype = {
         return deasync(this.asyncCallback.bind(this))(mod, config);
     },
 
-    _cacheKey(mod, config) {
-        return `${mod}:${config.branch}:${config.remote}`;
+    _buildTarballPath(mod, version) {
+        return `http://registry.npmjs.org/${mod}/-/${mod}-${version}.tgz`;
+    },
+
+    _getModuleNameFromNpmUrl(url) {
+        const split = url.split('/');
+        const moduleName = split[split.length - 1];
+        return moduleName;
     },
 
     _require(mod, config) {
-        const key = this._cacheKey(mod, config);
-        if (!this.cache[key]) {
-            this.cache[key] = require(mod);
-        }
-
-        return this.cache[key];
-    },
-
-    configure(config) {
-        this.config = Object.assign(this.config || {}, config);
-    },
-
-    getModuleNameFromGithubUrl(url) {
-        const split = url.split('/');
-        const githubIndex = split.indexOf('github.com');
-        const name = split[githubIndex + 2];
-        return name.replace('.git', '');
-    },
-
-    clearCache() {
-        this.cache = {};
-    },
-
-    async pull(modulePath, c = this.config) {
-        const git = simpleGit(modulePath);
-        const pull = promisify(git.pull.bind(git));
-        await pull(c.remote, c.branch);
-    },
-
-    async clone(modulePath, url) {
-        const git = simpleGit(modulePath);
-        const clone = promisify(git.clone.bind(git));
-        await clone(url, modulePath);
-    },
-
-    async checkout(modulePath, c = this.config) {
-        const git = simpleGit(modulePath);
-        const checkout = promisify(git.checkout.bind(git));
-        await checkout(c.branch);
+        return require(path.join(this.config.path, mod, 'package'));
     },
 
     asyncCallback(mod, c, cb) {
         this.async(mod, c).then(mod => cb(null, mod)).catch(err => cb(err));
+    },
+
+    configure(c = {}) {
+        this.config = Object.assign(this.config || {}, c);
     },
 
     async async(mod, c = {}) {
@@ -88,43 +77,45 @@ lrequire.prototype = {
             throw new Error('Module name cannot be empty');
         }
 
-        const isGithubUrl = mod.includes('github.com');
         const isNpmUrl = mod.includes('npmjs.org');
-        if (!isGithubUrl && !isNpmUrl) {
-            mod = await githubUrlFromNpm(mod);
-        } else if (isNpmUrl) {
-            const split = mod.split('/');
-            const moduleName = split[split.length - 1];
-            mod = await githubUrlFromNpm(moduleName);
+        if (isNpmUrl) {
+            mod = this._getModuleNameFromNpmUrl(mod);
         }
 
-        const repoName = this.getModuleNameFromGithubUrl(mod);
-        const modulePath = path.join(config.path, repoName);
+        const modulePath = path.join(config.path, mod);
+        const modulePackageJsonPath = path.join(
+            modulePath,
+            'package',
+            'package.json'
+        );
+        const moduleIsInstalled = await exists(modulePackageJsonPath);
 
-        const key = this._cacheKey(modulePath, config);
-        if (this.cache[key]) {
-            return this.cache[key];
+        let moduleVersion = '0.0.0';
+        if (moduleIsInstalled) {
+            moduleVersion = require(modulePackageJsonPath).version;
         }
 
-        //fs.exists does not follow the node callback guidelines, so we can't promisify it
-        if (!fs.existsSync(modulePath)) {
-            await mkdir(modulePath);
-            try {
-                await this.clone(modulePath, mod);
-            } catch (e) {
-                if (e.toString().includes('does not exist')) {
-                    throw new Error('Not Found'); //consistency
-                }
-            }
+        let version = config.version;
+        if (config.version === 'latest') {
+            version =
+                this.latestVersionCache[mod] || (await latestVersion(mod));
+            this.latestVersionCache[mod] = version;
         }
 
-        if (config.pull) {
-            await this.pull(modulePath, config);
+        if (semverCompare(moduleVersion, version) === 0) {
+            return this._require(mod);
         }
 
-        await this.checkout(modulePath, config);
+        const tarball = this._buildTarballPath(mod, version);
+        if (!moduleIsInstalled) {
+            await ensureDir(modulePath);
+        } else {
+            await emptyDir(modulePath);
+        }
 
-        return this._require(modulePath, config);
+        await this.unpacker.extractFromURL(tarball, modulePath);
+
+        return this._require(mod);
     }
 };
 

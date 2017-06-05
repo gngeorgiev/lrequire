@@ -1,4 +1,5 @@
 const assert = require('assert');
+const path = require('path');
 const lrequire = require('../');
 
 describe('Existing package', () => {
@@ -43,51 +44,59 @@ describe('Existing package', () => {
         'valid-url',
         'npmjs.org/package/valid-url',
         'http://npmjs.org/package/valid-url',
-        'https://npmjs.org/package/valid-url',
-        'github.com/ogt/valid-url',
-        'https://github.com/ogt/valid-url',
-        'http://github.com/ogt/valid-url'
+        'https://npmjs.org/package/valid-url'
     ];
 
-    function test(c, clearCache) {
-        describe(`With package from: ${c}, clear cache: ${clearCache}`, () => {
-            beforeEach(() => {
-                if (clearCache) {
-                    lrequire.clearCache();
-                }
-            });
-
+    function test(c) {
+        describe(`With package from: ${c}`, () => {
             testApi(c);
         });
     }
 
-    cases.forEach(c => test(c, false));
-    cases.forEach(c => test(c, true));
+    cases.forEach(c => test(c));
 });
 
 describe('Non-existing packages', () => {
     const testNotFound = prefix => {
-        assert.throws(() => {
-            try {
+        it(prefix, () => {
+            assert.throws(() => {
                 lrequire(
-                    `${prefix}${`non-existing-module-${Math.floor(
-                        Math.random() * 1000
-                    ) + 1}`}`
+                    `${prefix}${`non-existing-module-${Math.floor(Math.random() * 1000) + 1}`}`
                 );
-            } catch (e) {
-                console.log(e);
-                throw e;
-            }
-        }, /Not Found/g);
+            }, /doesn't exist/g);
+        });
     };
 
     [
         '',
         'npmjs.org/package/',
         'http://npmjs.org/package/',
-        'https://npmjs.org/package/',
-        'github.com/ogt/',
-        'https://github.com/ogt/',
-        'http://github.com/ogt/'
+        'https://npmjs.org/package/'
     ].forEach(c => testNotFound(c));
+});
+
+describe('Version changes', () => {
+    const mod = 'valid-url';
+    const p = path.join(lrequire.config.path, mod, 'package', 'package.json');
+
+    const requireAndVerifyVersion = version => {
+        lrequire(mod, { version });
+
+        assert.ok(require(p).version, version);
+    };
+
+    it('Old to new', () => {
+        requireAndVerifyVersion('1.0.8');
+        requireAndVerifyVersion('1.0.9');
+    });
+
+    it('New to Old', () => {
+        requireAndVerifyVersion('1.0.9');
+        requireAndVerifyVersion('1.0.8');
+    });
+
+    it('Old to latest', () => {
+        requireAndVerifyVersion('1.0.8');
+        requireAndVerifyVersion('latest');
+    });
 });

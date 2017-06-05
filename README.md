@@ -1,6 +1,6 @@
 # Live-require
 
-A module which allows you to require and try out github and npm modules directly without `npm install`-ing them first
+A module which allows you to require and try out npm modules directly without `npm install`-ing them first.
 
 # Examples
 

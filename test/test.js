@@ -61,7 +61,9 @@ describe('Non-existing packages', () => {
         it(prefix, () => {
             assert.throws(() => {
                 lrequire(
-                    `${prefix}${`non-existing-module-${Math.floor(Math.random() * 1000) + 1}`}`
+                    `${prefix}${`non-existing-module-${Math.floor(
+                        Math.random() * 1000
+                    ) + 1}`}`
                 );
             }, /doesn't exist/g);
         });

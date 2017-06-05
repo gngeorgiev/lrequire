@@ -1,6 +1,7 @@
 const os = require('os');
 const path = require('path');
 const { promisify } = require('util');
+const exec = promisify(require('child_process').exec);
 const {
     ensureDir,
     ensureDirSync,
@@ -35,10 +36,23 @@ const lrequire = function() {
     sync.async = this.async.bind(this);
     sync.asyncCallback = this.asyncCallback.bind(this);
     sync.configure = this.configure.bind(this);
+    sync.global = () => {
+        global.lrequire = sync;
+    };
 
-    Object.defineProperty(sync, 'config', {
-        get: () => this.config
+    Object.defineProperties(sync, {
+        config: {
+            get: () => this.config
+        },
+        latestVersionCache: {
+            get: () => this.latestVersionCache
+        }
     });
+
+    if (!module.parent) {
+        //this will execute only when this script is required from a CLI
+        sync.global();
+    }
 
     return sync;
 };
@@ -114,6 +128,9 @@ lrequire.prototype = {
         }
 
         await this.unpacker.extractFromURL(tarball, modulePath);
+        await exec('npm install --production', {
+            cwd: path.dirname(modulePackageJsonPath)
+        });
 
         return this._require(mod);
     }

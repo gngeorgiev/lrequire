@@ -1,5 +1,7 @@
 # Live-require
 
+[![Build Status](https://travis-ci.org/gngeorgiev/lrequire.svg?branch=master)](https://travis-ci.org/gngeorgiev/lrequire)
+
 A module which allows you to require and try out npm modules directly without `npm install`-ing them. You can use this to quickly test out different modules in your project, inside a toy project or in the repl.
 
 # How it works

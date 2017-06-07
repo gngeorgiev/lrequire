@@ -46,11 +46,6 @@ const lrequire = function() {
         }
     });
 
-    if (!module.parent) {
-        //this will execute only when this script is required from a CLI
-        sync.global();
-    }
-
     return sync;
 };
 

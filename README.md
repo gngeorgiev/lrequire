@@ -68,7 +68,7 @@ $ lrequire
 '<p>Hello <em>World</em>!</p>'
 ```
 
-# What if you don't want to create files in your filesystem?
+# What if you don't want to create files on your filesystem?
 
 On linux consider using [tmpfs](https://wiki.archlinux.org/index.php/tmpfs). You can mount it on `/tmp/lrequire` or even `/tmp` which is a common practice. Don't forget that the directory where the files are saved can be configured.
 

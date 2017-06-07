@@ -53,6 +53,12 @@ const latestVersion = lrequire('npmjs.org/package/latest-version');
 
 # Repl Usage
 
+Make sure to install `lrequire` globally:
+
+```bash
+$ npm i -g lrequire
+```
+
 Execute `lrequire` in your terminal, the `lrequire` function will be available in the newly opened repl which means you can directly start requiring modules. You can also use the `require` function, it will try to require a module and fallback to `lrequire`.
 
 ```bash
@@ -67,6 +73,10 @@ $ lrequire
 On linux consider using [tmpfs](https://wiki.archlinux.org/index.php/tmpfs). You can mount it on `/tmp/lrequire` or even `/tmp` which is a common practice. Don't forget that the directory where the files are saved can be configured.
 
 On MacOS and Windows there are some RamDisk implementations that might work.
+
+# Requirements
+
+Node 8
 
 # API Reference
 

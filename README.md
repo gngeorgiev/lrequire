@@ -6,7 +6,7 @@ A module which allows you to require and try out npm modules directly without `n
 
 # How it works
 
-Modules are downloaded and prepared in a predefined directory(`/tmp/` by default) and then required back to you. The modules are cached so only the first time a module is used it might take a little longer to load.
+Modules are downloaded and prepared in a predefined directory(`/tmp` by default) and then required back to you. The modules are cached so only the first time a module is used it might take a little longer to load.
 
 # Configuration
 

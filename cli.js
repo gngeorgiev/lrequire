@@ -3,7 +3,7 @@
 const repl = require('repl');
 const lrequire = require('./index');
 
-const r = repl.start('$ ');
+const r = repl.start('> ');
 
 r.context = Object.assign(r.context, {
     global,

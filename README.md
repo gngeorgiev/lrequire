@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/gngeorgiev/lrequire.svg?branch=master)](https://travis-ci.org/gngeorgiev/lrequire) [![dependencies](https://david-dm.org/gngeorgiev/lrequire.svg)]() [![Code Climate](https://codeclimate.com/github/gngeorgiev/lrequire/badges/gpa.svg)](https://codeclimate.com/github/gngeorgiev/lrequire)
 
-A module which allows you to require and try out npm modules directly without `npm install`-ing them. You can use this to quickly test out different modules in your project, inside a toy project or in the repl.
+A module which allows you to require and try out npm modules directly without `npm install`-ing them. You can use this to quickly test out different modules in your project, inside a toy project or in the terminal.
 
 # How it works
 
@@ -16,7 +16,7 @@ require('lrequire').configure({
 })
 ```
 
-# Usage
+# Programatic Usage
 
 Basic:
 
@@ -49,22 +49,15 @@ const validUrl = lrequire('valid-url') // require('valid-url');
 const latestVersion = lrequire('npmjs.org/package/latest-version');
 ```
 
-# Repl
+# Repl Usage
 
-Execute `lrequire` in your terminal, the `lrequire` command will be available in the newly opened repl which means you can directly start requiring modules.
+Execute `lrequire` in your terminal, the `lrequire` function will be available in the newly opened repl which means you can directly start requiring modules. You can also use the `require` function, it will try to require a module and fallback to `lrequire`.
 
 ```bash
 $ lrequire
-js > lrequire('valid-url')
-{ is_uri: [Function: is_iri],
-  is_http_uri: [Function: is_http_iri],
-  is_https_uri: [Function: is_https_iri],
-  is_web_uri: [Function: is_web_iri],
-  isUri: [Function: is_iri],
-  isHttpUri: [Function: is_http_iri],
-  isHttpsUri: [Function: is_https_iri],
-  isWebUri: [Function: is_web_iri] }
-
+> const { markdown } = require('markdown');
+> $ markdown.toHTML('Hello *World*!');
+'<p>Hello <em>World</em>!</p>'
 ```
 
 # API Reference

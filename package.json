@@ -14,6 +14,7 @@
     "assert": "^1.4.1",
     "mocha": "^3.4.2"
   },
+  "description": "A module which allows you to require and try out npm modules directly without `npm install`-ing them. You can use this to quickly test out different modules in your project, inside a toy project or in the terminal.",
   "bin": "./cli.js",
   "scripts": {
     "test": "mocha --timeout 5000 test/"

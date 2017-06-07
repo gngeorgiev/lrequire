@@ -1,17 +1,19 @@
 # Live-require
 
-[![Build Status](https://travis-ci.org/gngeorgiev/lrequire.svg?branch=master)](https://travis-ci.org/gngeorgiev/lrequire) [![dependencies](https://david-dm.org/gngeorgiev/lrequire.svg)]() [![Code Climate](https://codeclimate.com/github/gngeorgiev/lrequire/badges/gpa.svg)](https://codeclimate.com/github/gngeorgiev/lrequire)
+[![NPM](https://nodei.co/npm/lrequire.png?mini=true)](https://npmjs.org/package/lrequire) [![Build Status](https://travis-ci.org/gngeorgiev/lrequire.svg?branch=master)](https://travis-ci.org/gngeorgiev/lrequire) [![dependencies](https://david-dm.org/gngeorgiev/lrequire.svg)]() [![Code Climate](https://codeclimate.com/github/gngeorgiev/lrequire/badges/gpa.svg)](https://codeclimate.com/github/gngeorgiev/lrequire)
 
 A module which allows you to require and try out npm modules directly without `npm install`-ing them. You can use this to quickly test out different modules in your project, inside a toy project or in the terminal.
 
 # How it works
 
-Modules are downloaded and prepared in a predefined directory, `/tmp/` by default and then required back to you. The modules are cached so only the first time a module is used it might take a little longer to load.
+Modules are downloaded and prepared in a predefined directory(`/tmp/` by default) and then required back to you. The modules are cached so only the first time a module is used it might take a little longer to load.
 
 # Configuration
 
 ```javascript
-require('lrequire').configure({
+const lrequire = require('lrequire');
+
+lrequire.configure({
     path: '/tmp/lrequire' //where the modules will be downloaded
 })
 ```
@@ -45,7 +47,7 @@ You can also make `lrequire` global and use it at will. Later, if you wish to ke
 ```javascript
 require('lrequire').global();
 
-const validUrl = lrequire('valid-url') // require('valid-url');
+const validUrl = lrequire('valid-url');
 const latestVersion = lrequire('npmjs.org/package/latest-version');
 ```
 

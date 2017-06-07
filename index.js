@@ -27,18 +27,15 @@ const lrequire = function() {
         ensureDirSync(this.config.path);
     }
 
-    this.unpacker = new Unpacker();
-    this.unpacker.configure({
+    this.unpacker = new Unpacker().configure({
         silent: true
     });
 
-    const sync = this._sync.bind(this);
+    const sync = this.sync.bind(this);
     sync.async = this.async.bind(this);
     sync.asyncCallback = this.asyncCallback.bind(this);
     sync.configure = this.configure.bind(this);
-    sync.global = () => {
-        global.lrequire = sync;
-    };
+    sync.global = () => (global.lrequire = sync);
 
     Object.defineProperties(sync, {
         config: {
@@ -58,10 +55,6 @@ const lrequire = function() {
 };
 
 lrequire.prototype = {
-    _sync(mod, config) {
-        return deasync(this.asyncCallback.bind(this))(mod, config);
-    },
-
     _buildTarballPath(mod, version) {
         return `http://registry.npmjs.org/${mod}/-/${mod}-${version}.tgz`;
     },
@@ -72,16 +65,20 @@ lrequire.prototype = {
         return moduleName;
     },
 
-    _require(mod, config) {
+    _require(mod) {
         return require(path.join(this.config.path, mod, 'package'));
-    },
-
-    asyncCallback(mod, c, cb) {
-        this.async(mod, c).then(mod => cb(null, mod)).catch(err => cb(err));
     },
 
     configure(c = {}) {
         this.config = Object.assign(this.config || {}, c);
+    },
+
+    sync(mod, config) {
+        return deasync(this.asyncCallback.bind(this))(mod, config);
+    },
+
+    asyncCallback(mod, c, cb) {
+        this.async(mod, c).then(mod => cb(null, mod)).catch(err => cb(err));
     },
 
     async async(mod, c = {}) {
@@ -117,6 +114,7 @@ lrequire.prototype = {
         }
 
         if (semverCompare(moduleVersion, version) === 0) {
+            //the module is installed, just require it
             return this._require(mod);
         }
 

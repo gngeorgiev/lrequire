@@ -18,7 +18,7 @@ lrequire.configure({
 })
 ```
 
-# Programatic Usage
+# Programmatic Usage
 
 Basic:
 
